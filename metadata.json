@@ -1,0 +1,6 @@
+{
+  "name": "ClientHunter AI",
+  "description": "AI-powered lead discovery, website opportunity analysis, and WhatsApp outreach for freelance web developers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
