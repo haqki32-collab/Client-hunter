@@ -1,0 +1,29 @@
+{
+  "entities": {
+    "analyzed_businesses": {
+      "title": "Analyzed Business",
+      "description": "Businesses that have been analyzed and excluded from repeat detection",
+      "type": "object",
+      "properties": {
+        "signature": { "type": "string" },
+        "businessName": { "type": "string" },
+        "city": { "type": "string" },
+        "country": { "type": "string" },
+        "category": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "website": { "type": "string" },
+        "websiteStatus": { "type": "string" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "googleBusinessUrl": { "type": "string" },
+        "opportunityScore": { "type": "number" },
+        "topReviewHighlight": { "type": "string" },
+        "selectedOfferPitch": { "type": "string" },
+        "discoveredAt": { "type": "string" },
+        "isRealVerifiedPlaces": { "type": "boolean" }
+      },
+      "required": ["signature", "businessName", "city"]
+    }
+  }
+}

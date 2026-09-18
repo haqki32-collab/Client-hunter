@@ -19,6 +19,10 @@ import {
   Phone,
   Sparkles,
 } from 'lucide-react';
+import {
+  fetchAnalyzedBusinessesFromFirestore,
+  removeAnalyzedBusinessFromFirestore,
+} from '../firebase.ts';
 
 export interface AnalyzedBusinessRecord {
   signature: string;
@@ -60,35 +64,55 @@ export const AnalyzedHistoryView: React.FC<AnalyzedHistoryViewProps> = ({
 
   const fetchRecords = async () => {
     setLoading(true);
+    let combinedRecords: AnalyzedBusinessRecord[] = [];
+
+    // 1. Fetch from server API if available
     try {
       const res = await fetch('/api/historical-registry');
       if (res.ok) {
         const data = await res.json();
-        const serverRegistry = data.registry || [];
-        setRecords(serverRegistry);
-        setTotalCount(data.totalCount || serverRegistry.length);
-        try {
-          localStorage.setItem('ch_analyzed_registry', JSON.stringify(serverRegistry));
-        } catch (e) {}
-        if (onRefreshCount) onRefreshCount();
-        return;
+        combinedRecords = data.registry || [];
       }
     } catch (err) {
-      console.warn('API registry fetch unavailable, checking local storage:', err);
+      console.warn('API registry fetch unavailable:', err);
     }
 
-    // Static fallback (e.g. GitHub Pages)
+    // 2. Fetch from Firebase Firestore for persistent cloud storage
     try {
-      const localData = localStorage.getItem('ch_analyzed_registry');
-      if (localData) {
-        const parsed = JSON.parse(localData);
-        if (Array.isArray(parsed)) {
-          setRecords(parsed);
-          setTotalCount(parsed.length);
-          if (onRefreshCount) onRefreshCount();
+      const firestoreRecords = await fetchAnalyzedBusinessesFromFirestore();
+      if (firestoreRecords.length > 0) {
+        const sigMap = new Map<string, AnalyzedBusinessRecord>();
+        for (const r of combinedRecords) sigMap.set(r.signature, r);
+        for (const r of firestoreRecords) {
+          if (!sigMap.has(r.signature)) {
+            sigMap.set(r.signature, r);
+          }
         }
+        combinedRecords = Array.from(sigMap.values());
       }
+    } catch (e) {
+      console.warn('Firestore sync warning:', e);
+    }
+
+    // 3. Fallback to localStorage if both were empty
+    if (combinedRecords.length === 0) {
+      try {
+        const localData = localStorage.getItem('ch_analyzed_registry');
+        if (localData) {
+          const parsed = JSON.parse(localData);
+          if (Array.isArray(parsed)) {
+            combinedRecords = parsed;
+          }
+        }
+      } catch (e) {}
+    }
+
+    setRecords(combinedRecords);
+    setTotalCount(combinedRecords.length);
+    try {
+      localStorage.setItem('ch_analyzed_registry', JSON.stringify(combinedRecords));
     } catch (e) {}
+    if (onRefreshCount) onRefreshCount();
     setLoading(false);
   };
 
@@ -102,14 +126,13 @@ export const AnalyzedHistoryView: React.FC<AnalyzedHistoryViewProps> = ({
     }
     setIsDeleting(signature);
     try {
-      const res = await fetch(`/api/historical-registry/${encodeURIComponent(signature)}`, {
+      await removeAnalyzedBusinessFromFirestore(signature);
+      await fetch(`/api/historical-registry/${encodeURIComponent(signature)}`, {
         method: 'DELETE',
       });
-      if (res.ok) {
-        setRecords((prev) => prev.filter((r) => r.signature !== signature));
-        setTotalCount((prev) => Math.max(0, prev - 1));
-        if (onRefreshCount) onRefreshCount();
-      }
+      setRecords((prev) => prev.filter((r) => r.signature !== signature));
+      setTotalCount((prev) => Math.max(0, prev - 1));
+      if (onRefreshCount) onRefreshCount();
     } catch (err) {
       console.error('Failed to remove record:', err);
     } finally {

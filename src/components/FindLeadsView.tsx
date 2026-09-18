@@ -31,6 +31,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { Lead, LeadDiscoveryCriteria } from '../types.ts';
+import { saveAnalyzedBusinessToFirestore } from '../firebase.ts';
 
 interface FindLeadsViewProps {
   onLeadsDiscovered: (leads: Lead[]) => void;
@@ -140,6 +141,30 @@ export const FindLeadsView: React.FC<FindLeadsViewProps> = ({
           const existingList = existingRaw ? JSON.parse(existingRaw) : [];
           const combined = [...data.leads, ...existingList];
           localStorage.setItem('ch_analyzed_registry', JSON.stringify(combined));
+
+          // Save each to Firestore
+          for (const lead of data.leads) {
+            const sig = `${(lead.businessName || '').toLowerCase().replace(/[^a-z0-9]/g, '')}__${(lead.city || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+            saveAnalyzedBusinessToFirestore({
+              signature: sig,
+              businessName: lead.businessName,
+              city: lead.city,
+              country: lead.country,
+              category: lead.category,
+              phone: lead.phone,
+              whatsapp: lead.whatsapp,
+              website: lead.website,
+              websiteStatus: lead.websiteStatus,
+              rating: lead.rating,
+              reviewCount: lead.reviewCount,
+              googleBusinessUrl: lead.googleBusinessUrl,
+              opportunityScore: lead.opportunityScore,
+              topReviewHighlight: lead.topReviewHighlight,
+              selectedOfferPitch: lead.selectedOfferPitch,
+              discoveredAt: lead.createdAt || new Date().toISOString(),
+              isRealVerifiedPlaces: lead.isRealVerifiedPlaces,
+            });
+          }
         } catch (e) {}
         onLeadsDiscovered(data.leads);
       } else {
