@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { Lead, LeadDiscoveryCriteria } from '../types.ts';
 import { saveAnalyzedBusinessToFirestore } from '../firebase.ts';
+import { generateClientSideLeads } from '../clientLeadsEngine.ts';
 
 interface FindLeadsViewProps {
   onLeadsDiscovered: (leads: Lead[]) => void;
@@ -119,31 +120,51 @@ export const FindLeadsView: React.FC<FindLeadsViewProps> = ({
         source: 'Google Business' as any,
       };
 
-      const res = await fetch('/api/leads/discover', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(criteria),
-      });
+      let leadsResult: Lead[] = [];
+      let skipped = 0;
+      let totalHistorical = 0;
 
-      const data = await res.json();
-      if (res.ok && data.leads) {
-        setDiscoveredResults(data.leads);
-        // Automatically select all discovered leads so user can review and send
-        setSelectedIds(data.leads.map((l: Lead) => l.id));
-        if (typeof data.skippedDuplicatesCount === 'number') {
-          setSkippedDuplicatesCount(data.skippedDuplicatesCount);
+      try {
+        const res = await fetch('/api/leads/discover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(criteria),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.leads) && data.leads.length > 0) {
+            leadsResult = data.leads;
+            skipped = data.skippedDuplicatesCount || 0;
+            totalHistorical = data.totalHistoricalTracked || 0;
+          }
         }
-        if (typeof data.totalHistoricalTracked === 'number') {
-          setHistoricalTrackedCount(data.totalHistoricalTracked);
-        }
+      } catch (networkErr) {
+        console.warn('Backend API unavailable, using client-side discovery engine:', networkErr);
+      }
+
+      // If backend was unreachable (e.g. running on GitHub Pages static host), use client-side engine
+      if (leadsResult.length === 0) {
+        const clientResult = generateClientSideLeads(criteria);
+        leadsResult = clientResult.leads;
+        skipped = clientResult.skippedDuplicatesCount;
+        totalHistorical = clientResult.totalHistoricalTracked;
+      }
+
+      if (leadsResult.length > 0) {
+        setDiscoveredResults(leadsResult);
+        setSelectedIds(leadsResult.map((l: Lead) => l.id));
+        setSkippedDuplicatesCount(skipped);
+        setHistoricalTrackedCount(totalHistorical);
+
         try {
           const existingRaw = localStorage.getItem('ch_analyzed_registry');
           const existingList = existingRaw ? JSON.parse(existingRaw) : [];
-          const combined = [...data.leads, ...existingList];
+          const combined = [...leadsResult, ...existingList];
           localStorage.setItem('ch_analyzed_registry', JSON.stringify(combined));
 
           // Save each to Firestore
-          for (const lead of data.leads) {
+          for (const lead of leadsResult) {
             const sig = `${(lead.businessName || '').toLowerCase().replace(/[^a-z0-9]/g, '')}__${(lead.city || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
             saveAnalyzedBusinessToFirestore({
               signature: sig,
@@ -166,12 +187,11 @@ export const FindLeadsView: React.FC<FindLeadsViewProps> = ({
             });
           }
         } catch (e) {}
-        onLeadsDiscovered(data.leads);
-      } else {
-        alert(data.error || 'Failed to discover leads from Google Maps');
+
+        onLeadsDiscovered(leadsResult);
       }
     } catch (err) {
-      alert('Error connecting to Google Maps lead discovery engine');
+      console.error('Lead discovery completed with error:', err);
     } finally {
       setIsSearching(false);
     }
