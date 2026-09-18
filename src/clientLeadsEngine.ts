@@ -299,8 +299,30 @@ export function generateClientSideLeads(criteria: LeadDiscoveryCriteria): {
     knownSignatures.add(signature);
 
     const area = catalog.areas[idx % catalog.areas.length];
-    const phoneNum = `${catalog.phonePrefix}${Math.floor(1000000 + Math.random() * 8999999)}`;
-    const whatsappNum = phoneNum.replace(/\s+/g, '');
+    
+    // Generate phone numbers strictly in authentic local format (e.g. 03215648754 for Pakistan)
+    const isPakistani = /pakistan|lahore|karachi|islamabad|rawalpindi|faisalabad|peshawar|multan/i.test(country || city);
+    let phoneNum = '';
+    let whatsappNum = '';
+
+    if (isPakistani) {
+      const mobileCodes = ['0321', '0300', '0301', '0302', '0322', '0333', '0334', '0345', '0346', '0312'];
+      const code = mobileCodes[idx % mobileCodes.length];
+      const digits = String(1000000 + ((idx * 84729 + 5648754) % 8999999)).slice(0, 7);
+      phoneNum = `${code}${digits}`; // e.g. 03215648754
+      whatsappNum = `92${phoneNum.slice(1)}`; // 923215648754 for WhatsApp direct
+    } else if (/emirates|uae|dubai|abu dhabi|sharjah/i.test(country || city)) {
+      const uaeCodes = ['050', '052', '054', '055', '056', '058'];
+      const code = uaeCodes[idx % uaeCodes.length];
+      const digits = String(1000000 + ((idx * 84729 + 1234567) % 8999999)).slice(0, 7);
+      phoneNum = `${code}${digits}`;
+      whatsappNum = `971${phoneNum.slice(1)}`;
+    } else {
+      const digits = String(1000000 + ((idx * 84729 + 5648754) % 8999999)).slice(0, 7);
+      phoneNum = `0321${digits}`;
+      whatsappNum = `92321${digits}`;
+    }
+
     const gMapUrl = `https://maps.google.com/?q=${encodeURIComponent(bName + ' ' + city)}`;
     const cleanHandle = bName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16);
 
@@ -343,7 +365,8 @@ Humne ${city} ke businesses ke liye high-speed mobile website aur direct WhatsAp
 Aap ke liye humne ek free 3D preview mockup tayyar kiya hai. Kya mein aap ke sath WhatsApp par share karoon?
 
 Best regards,
-Hamza | Apex Web Studio`;
+Syed Asim Ali shah
+Rizqdaan Web development Services`;
 
     const lead: Lead = {
       id: `lead_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,

@@ -35,7 +35,12 @@ export const WhatsAppSendModal: React.FC<WhatsAppSendModalProps> = ({
   if (!isOpen || !lead) return null;
 
   const phone = lead.whatsapp || lead.phone || '';
-  const cleanPhone = phone.replace(/[^0-9]/g, '');
+  let cleanPhone = phone.replace(/[^0-9]/g, '');
+  if (cleanPhone.startsWith('03') && cleanPhone.length === 11) {
+    cleanPhone = '92' + cleanPhone.slice(1);
+  } else if (cleanPhone.startsWith('05') && cleanPhone.length === 10) {
+    cleanPhone = '971' + cleanPhone.slice(1);
+  }
   const content = message?.approvedContent || '';
 
   const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(content)}`;
@@ -75,7 +80,13 @@ export const WhatsAppSendModal: React.FC<WhatsAppSendModalProps> = ({
         alert(data.error || 'Failed to dispatch message');
       }
     } catch (e: any) {
-      alert('Error communicating with server');
+      // Direct client fallback on static/GitHub Pages
+      window.open(waUrl, '_blank');
+      setResultMessage('Opening direct in WhatsApp Web / App...');
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+      }, 1500);
     } finally {
       setSending(false);
     }

@@ -67,9 +67,15 @@ export const SeriousClientsView: React.FC<SeriousClientsViewProps> = ({
     .reduce((sum, l) => sum + (l.dealValue || 950), 0);
 
   const handleOpenWhatsAppPersonal = (lead: Lead) => {
-    const devName = settings.developerName || 'Hamza';
-    const cleanPhone = (lead.whatsapp || lead.phone || '').replace(/[^0-9]/g, '');
-    const pitch = `Assalam o Alaikum ${lead.businessName}! ${devName} here from ${settings.businessName || 'Apex Web Studio'}. Regarding our discussion about your new mobile website with direct WhatsApp ordering: I have your custom project scope and live delivery plan ready. We can kick off tomorrow and launch in 4 business days. Would you like me to send over the kickoff details?`;
+    const devName = settings.developerName || 'Syed Asim Ali shah';
+    const firmName = settings.businessName || 'Rizqdaan Web development Services';
+    let cleanPhone = (lead.whatsapp || lead.phone || '').replace(/[^0-9]/g, '');
+    if (cleanPhone.startsWith('03') && cleanPhone.length === 11) {
+      cleanPhone = '92' + cleanPhone.slice(1);
+    } else if (cleanPhone.startsWith('05') && cleanPhone.length === 10) {
+      cleanPhone = '971' + cleanPhone.slice(1);
+    }
+    const pitch = `Assalam o Alaikum ${lead.businessName}! ${devName} here from ${firmName}. Regarding our discussion about your new mobile website with direct WhatsApp ordering: I have your custom project scope and live delivery plan ready. We can kick off tomorrow and launch in 4 business days. Would you like me to send over the kickoff details?`;
 
     const url = cleanPhone
       ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(pitch)}`

@@ -78,12 +78,12 @@ function normalizeBusinessSignature(name: string, city: string): string {
 }
 
 const defaultSettings: AppSettings = {
-  developerName: 'Hamza Khan',
-  businessName: 'Apex Web Studio',
-  websiteUrl: 'https://apexwebstudio.dev',
-  portfolioUrl: 'https://apexwebstudio.dev/portfolio',
-  whatsappNumber: '+971509988776',
-  email: 'hamza@apexwebstudio.dev',
+  developerName: 'Syed Asim Ali shah',
+  businessName: 'Rizqdaan Web development Services',
+  websiteUrl: 'https://rizqdaan.com',
+  portfolioUrl: 'https://rizqdaan.com/portfolio',
+  whatsappNumber: '+923215648754',
+  email: 'haqki32@gmail.com',
   targetCountries: ['United Arab Emirates', 'Pakistan', 'Saudi Arabia', 'United Kingdom'],
   targetCities: ['Dubai', 'Abu Dhabi', 'Islamabad', 'Lahore', 'Karachi', 'Riyadh'],
   targetCategories: ['Restaurants & Cafes', 'Clinics & Dental', 'Auto Repair & Detailing', 'Real Estate', 'Salons & Spas'],
@@ -1343,8 +1343,8 @@ Schema:
     const isNoWeb = item.websiteStatus === 'no_website' || !item.website;
 
     const leadId = `lead_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`;
-    const devName = state.settings.developerName || 'Hamza';
-    const agencyName = state.settings.businessName || 'Apex Web Studio';
+    const devName = state.settings.developerName || 'Syed Asim Ali shah';
+    const agencyName = state.settings.businessName || 'Rizqdaan Web development Services';
 
     const cleanHandle = bName.toLowerCase().replace(/[^a-z0-9]/g, '');
     const gMapUrl = item.googleBusinessUrl || `https://maps.google.com/?q=${encodeURIComponent(bName + ' ' + city)}`;
@@ -1469,8 +1469,8 @@ app.post('/api/outreach/send-batch', async (req, res) => {
     // Use or generate personalized pitch with Google Business & Social Profile links
     let pitch = lead.selectedOfferPitch;
     if (!pitch || !pitch.includes('📍 Google Business')) {
-      const devName = state.settings.developerName || 'Hamza';
-      const agencyName = state.settings.businessName || 'Apex Web Studio';
+      const devName = state.settings.developerName || 'Syed Asim Ali shah';
+      const agencyName = state.settings.businessName || 'Rizqdaan Web development Services';
       const cleanHandle = lead.businessName.toLowerCase().replace(/[^a-z0-9]/g, '');
       const gMapUrl = lead.googleBusinessUrl || `https://maps.google.com/?q=${encodeURIComponent(lead.businessName + ' ' + lead.city)}`;
       const igUrl = lead.socialProfiles?.instagram || `https://instagram.com/${cleanHandle}`;
@@ -1601,9 +1601,9 @@ app.post('/api/sales-agent/reply', async (req, res) => {
   let detectedIntent: ChatMessage['intent'] = 'general';
   let isReadyToBuy = false;
 
-  const developer = state.settings.developerName || 'Hamza';
-  const agency = state.settings.businessName || 'Apex Web Studio';
-  const portfolio = state.settings.portfolioUrl || 'https://apexwebstudio.dev/portfolio';
+  const developer = state.settings.developerName || 'Syed Asim Ali shah';
+  const agency = state.settings.businessName || 'Rizqdaan Web development Services';
+  const portfolio = state.settings.portfolioUrl || 'https://rizqdaan.com/portfolio';
   const pricing = state.settings.pricing || { basic: 450, business: 950, ecommerce: 1800, currency: 'USD' };
 
   if (genAI) {
@@ -1749,9 +1749,9 @@ app.post('/api/sales-agent/simulate-reply', async (req, res) => {
 
   // Call internal reply generation
   req.body = { leadId, clientMessage: simulatedClientText };
-  const developer = state.settings.developerName || 'Hamza';
+  const developer = state.settings.developerName || 'Syed Asim Ali shah';
   const pricing = state.settings.pricing || { basic: 450, business: 950, ecommerce: 1800, currency: 'USD' };
-  const portfolio = state.settings.portfolioUrl || 'https://apexwebstudio.dev/portfolio';
+  const portfolio = state.settings.portfolioUrl || 'https://rizqdaan.com/portfolio';
 
   let replyText = '';
   let isReadyToBuy = false;

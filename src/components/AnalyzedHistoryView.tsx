@@ -365,7 +365,12 @@ export const AnalyzedHistoryView: React.FC<AnalyzedHistoryViewProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredRecords.map((item) => {
             const hasNoWeb = !item.website || item.websiteStatus === 'no_website';
-            const cleanPhone = (item.whatsapp || item.phone || '').replace(/[^0-9]/g, '');
+            let cleanPhone = (item.whatsapp || item.phone || '').replace(/[^0-9]/g, '');
+            if (cleanPhone.startsWith('03') && cleanPhone.length === 11) {
+              cleanPhone = '92' + cleanPhone.slice(1);
+            } else if (cleanPhone.startsWith('05') && cleanPhone.length === 10) {
+              cleanPhone = '971' + cleanPhone.slice(1);
+            }
             const defaultPitch =
               item.selectedOfferPitch ||
               `Assalam o Alaikum! I noticed ${item.businessName} has fantastic reviews on Google Maps in ${item.city}, but no official mobile website for customer orders. Would you like a free mockup preview?`;
@@ -560,7 +565,12 @@ export const AnalyzedHistoryView: React.FC<AnalyzedHistoryViewProps> = ({
               </button>
 
               {(() => {
-                const cleanPhone = (viewPitchRecord.whatsapp || viewPitchRecord.phone || '').replace(/[^0-9]/g, '');
+                let cleanPhone = (viewPitchRecord.whatsapp || viewPitchRecord.phone || '').replace(/[^0-9]/g, '');
+                if (cleanPhone.startsWith('03') && cleanPhone.length === 11) {
+                  cleanPhone = '92' + cleanPhone.slice(1);
+                } else if (cleanPhone.startsWith('05') && cleanPhone.length === 10) {
+                  cleanPhone = '971' + cleanPhone.slice(1);
+                }
                 const pitch = viewPitchRecord.selectedOfferPitch || '';
                 const waUrl = cleanPhone
                   ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(pitch)}`
